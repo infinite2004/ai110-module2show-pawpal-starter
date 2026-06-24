@@ -1,87 +1,107 @@
-"""Core PawPal+ classes.
-
-This module is the backend logic layer for the PawPal+ Streamlit app.
-The classes are skeletons based on the draft UML and will be filled in
-during the scheduling implementation phase.
-"""
+"""Core logic classes for the PawPal+ pet care planner."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
 
 
 @dataclass
-class CareTask:
-    """A single pet care task that may be included in a daily plan."""
+class Task:
+    """Represents one pet care activity."""
 
-    title: str
-    duration_minutes: int
-    priority: str
-    preferred_time: str = ""
+    description: str
+    time: str
+    frequency: str
+    completed: bool = False
 
-    def update_details(
-        self, title: str, duration_minutes: int, priority: str, preferred_time: str = ""
-    ) -> None:
-        """Update the task's editable details."""
-        raise NotImplementedError
+    def mark_complete(self) -> None:
+        """Mark this task as completed."""
+        self.completed = True
 
-    def priority_score(self) -> int:
-        """Convert the priority label into a sortable score."""
-        raise NotImplementedError
+    def mark_incomplete(self) -> None:
+        """Mark this task as not completed."""
+        self.completed = False
+
+    def display_status(self) -> str:
+        """Return a readable completion status."""
+        if self.completed:
+            return "complete"
+        return "pending"
 
 
 @dataclass
 class Pet:
-    """A pet with basic profile details and care tasks."""
+    """Stores pet details and that pet's care tasks."""
 
     name: str
     species: str
-    care_notes: str = ""
-    tasks: list[CareTask] = field(default_factory=list)
+    age: int | None = None
+    tasks: list[Task] = field(default_factory=list)
 
-    def add_task(self, task: CareTask) -> None:
-        """Add a care task for this pet."""
-        raise NotImplementedError
+    def add_task(self, task: Task) -> None:
+        """Add a task to this pet."""
+        self.tasks.append(task)
 
-    def get_tasks(self) -> list[CareTask]:
-        """Return this pet's care tasks."""
-        raise NotImplementedError
+    def get_tasks(self) -> list[Task]:
+        """Return all tasks assigned to this pet."""
+        return self.tasks
 
 
 @dataclass
 class Owner:
-    """A pet owner with availability, preferences, and pets."""
+    """Manages pets and provides access to their tasks."""
 
     name: str
-    available_minutes: int
-    preferences: str = ""
     pets: list[Pet] = field(default_factory=list)
 
     def add_pet(self, pet: Pet) -> None:
-        """Add a pet to this owner's profile."""
-        raise NotImplementedError
+        """Add a pet to this owner."""
+        self.pets.append(pet)
 
-    def update_availability(self, minutes: int) -> None:
-        """Update how many minutes the owner has available for pet care today."""
-        raise NotImplementedError
+    def get_pets(self) -> list[Pet]:
+        """Return all pets managed by this owner."""
+        return self.pets
+
+    def get_all_tasks(self) -> list[tuple[Pet, Task]]:
+        """Return every task grouped with the pet it belongs to."""
+        all_tasks = []
+        for pet in self.pets:
+            for task in pet.get_tasks():
+                all_tasks.append((pet, task))
+        return all_tasks
 
 
 @dataclass
-class DailyPlanner:
-    """Builds and explains a daily pet care plan."""
+class Scheduler:
+    """Retrieves, organizes, and formats tasks across an owner's pets."""
 
-    plan_date: date
-    scheduled_tasks: list[CareTask] = field(default_factory=list)
+    owner: Owner
 
-    def generate_plan(self, owner: Owner, pet: Pet) -> list[CareTask]:
-        """Generate a daily schedule using owner constraints and pet tasks."""
-        raise NotImplementedError
+    def get_todays_tasks(self) -> list[tuple[Pet, Task]]:
+        """Return all tasks scheduled for today."""
+        return self.owner.get_all_tasks()
 
-    def sort_tasks_by_priority(self, tasks: list[CareTask]) -> list[CareTask]:
-        """Sort tasks so more important care appears earlier in the plan."""
-        raise NotImplementedError
+    def sort_tasks_by_time(self, tasks: list[tuple[Pet, Task]]) -> list[tuple[Pet, Task]]:
+        """Sort task entries by their time value."""
+        return sorted(tasks, key=lambda entry: entry[1].time)
 
-    def explain_plan(self) -> str:
-        """Explain why the current daily plan was selected."""
-        raise NotImplementedError
+    def build_schedule(self) -> list[tuple[Pet, Task]]:
+        """Build today's schedule in chronological order."""
+        return self.sort_tasks_by_time(self.get_todays_tasks())
+
+    def format_schedule(self) -> str:
+        """Format today's schedule for terminal output."""
+        schedule = self.build_schedule()
+        lines = ["Today's Schedule", "----------------"]
+
+        if not schedule:
+            lines.append("No tasks scheduled.")
+            return "\n".join(lines)
+
+        for pet, task in schedule:
+            lines.append(
+                f"{task.time} | {pet.name} ({pet.species}) | "
+                f"{task.description} [{task.frequency}, {task.display_status()}]"
+            )
+
+        return "\n".join(lines)

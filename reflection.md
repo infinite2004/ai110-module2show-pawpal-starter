@@ -10,11 +10,11 @@ The three core actions a PawPal+ user should be able to perform are:
 
 **a. Initial design**
 
-My initial UML design uses four main classes: `Owner`, `Pet`, `CareTask`, and `DailyPlanner`. `Owner` stores the pet owner's name, available care time, preferences, and pets. `Pet` stores the pet's name, species, care notes, and task list. `CareTask` represents one care activity, including its title, duration, priority, and preferred time. `DailyPlanner` is responsible for taking an owner, a pet, and the pet's tasks, then generating a daily care plan that can be explained to the user.
+My initial UML design uses four main classes: `Owner`, `Pet`, `Task`, and `Scheduler`. `Owner` stores the pet owner's name and pets. `Pet` stores the pet's name, species, age, and task list. `Task` represents one care activity, including its description, time, frequency, and completion status. `Scheduler` is responsible for retrieving tasks from the owner, sorting them by time, and formatting a readable daily schedule.
 
 **b. Design changes**
 
-After reviewing the class skeleton, I refined the design by making the relationships visible as attributes: `Owner` now has a `pets` list, and `Pet` now has a `tasks` list. This makes the "owner has pets" and "pet has tasks" relationships easier to represent in code instead of relying only on methods like `add_pet()` and `add_task()`.
+After reviewing and implementing the class skeleton, I refined the design by renaming `CareTask` to `Task` and `DailyPlanner` to `Scheduler` so the class names better match the assignment language. I also made the relationships visible as attributes: `Owner` has a `pets` list, and `Pet` has a `tasks` list. The `Scheduler` retrieves tasks through `Owner.get_all_tasks()`, which keeps schedule-building separate from pet storage.
 
 ---
 
