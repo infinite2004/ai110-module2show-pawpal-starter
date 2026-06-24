@@ -1,0 +1,41 @@
+classDiagram
+    class Owner {
+        +string name
+        +int available_minutes
+        +string preferences
+        +list pets
+        +add_pet(Pet pet)
+        +update_availability(int minutes)
+    }
+
+    class Pet {
+        +string name
+        +string species
+        +string care_notes
+        +list tasks
+        +add_task(CareTask task)
+        +get_tasks() list
+    }
+
+    class CareTask {
+        +string title
+        +int duration_minutes
+        +string priority
+        +string preferred_time
+        +update_details(string title, int duration_minutes, string priority)
+        +priority_score() int
+    }
+
+    class DailyPlanner {
+        +date plan_date
+        +list scheduled_tasks
+        +generate_plan(Owner owner, Pet pet) list
+        +sort_tasks_by_priority(list tasks) list
+        +explain_plan() string
+    }
+
+    Owner "1" --> "1..*" Pet : cares for
+    Pet "1" --> "0..*" CareTask : has tasks
+    DailyPlanner --> Owner : uses availability
+    DailyPlanner --> Pet : plans care for
+    DailyPlanner --> CareTask : schedules
